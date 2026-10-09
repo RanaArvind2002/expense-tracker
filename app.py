@@ -1,4 +1,7 @@
-from flask import Flask, render_template
+import re
+from flask import Flask, render_template, request, redirect, url_for
+import sqlite3
+from werkzeug.security import generate_password_hash
 from database.db import get_db, init_db, seed_db
 
 app = Flask(__name__)
@@ -17,9 +20,48 @@ def landing():
     return render_template("landing.html")
 
 
-@app.route("/register")
+@app.route("/register", methods=["GET", "POST"])
 def register():
-    return render_template("register.html")
+    error = None
+    success = None
+    if request.method == "POST":
+        name = request.form.get("name", "").strip()
+        email = request.form.get("email", "").strip()
+        password = request.form.get("password", "")
+        confirm_password = request.form.get("confirm_password", "")
+        errors = []
+        if not name:
+            errors.append("Full name is required.")
+        elif len(name) < 2:
+            errors.append("Full name must be at least 2 characters.")
+        if not email:
+            errors.append("Email is required.")
+        elif not re.match(r"[^@]+@[^@]+\.[^@]+", email):
+            errors.append("Please enter a valid email address.")
+        if not password:
+            errors.append("Password is required.")
+        elif len(password) < 8:
+            errors.append("Password must be at least 8 characters.")
+        if not confirm_password:
+            errors.append("Confirm password is required.")
+        elif password != confirm_password:
+            errors.append("Passwords do not match.")
+        if errors:
+            error = " ".join(errors)
+        else:
+            conn = get_db()
+            try:
+                conn.execute(
+                    "INSERT INTO users (name, email, password_hash) VALUES (?, ?, ?)",
+                    (name, email, generate_password_hash(password)),
+                )
+                conn.commit()
+                success = "Account created successfully. You can now sign in."
+            except sqlite3.IntegrityError:
+                error = "An account with that email already exists."
+            finally:
+                conn.close()
+    return render_template("register.html", error=error, success=success)
 
 
 @app.route("/login")
