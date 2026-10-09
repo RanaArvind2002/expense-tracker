@@ -1,10 +1,11 @@
 import re
-from flask import Flask, render_template, request, redirect, url_for
+from flask import Flask, render_template, request, redirect, url_for, session
 import sqlite3
-from werkzeug.security import generate_password_hash
+from werkzeug.security import generate_password_hash, check_password_hash
 from database.db import get_db, init_db, seed_db
 
 app = Flask(__name__)
+app.secret_key = "spendly-secret-key-2026"
 
 with app.app_context():
     init_db()
@@ -22,6 +23,8 @@ def landing():
 
 @app.route("/register", methods=["GET", "POST"])
 def register():
+    if session.get("user_id"):
+        return redirect(url_for("landing"))
     error = None
     success = None
     if request.method == "POST":
@@ -64,9 +67,33 @@ def register():
     return render_template("register.html", error=error, success=success)
 
 
-@app.route("/login")
+@app.route("/login", methods=["GET", "POST"])
 def login():
-    return render_template("login.html")
+    if session.get("user_id"):
+        return redirect(url_for("landing"))
+    error = None
+    if request.method == "POST":
+        email = request.form.get("email", "").strip()
+        password = request.form.get("password", "")
+        if not email or not password:
+            error = "Email and password are required."
+        else:
+            conn = get_db()
+            try:
+                row = conn.execute(
+                    "SELECT id, email, password_hash FROM users WHERE email = ?", (email,)
+                ).fetchone()
+                if row is None:
+                    error = "Invalid email or password."
+                else:
+                    if not check_password_hash(row["password_hash"], password):
+                        error = "Invalid email or password."
+                    else:
+                        session["user_id"] = row["id"]
+                        return redirect(url_for("landing"))
+            finally:
+                conn.close()
+    return render_template("login.html", error=error)
 
 
 @app.route("/terms")
@@ -85,7 +112,8 @@ def privacy():
 
 @app.route("/logout")
 def logout():
-    return "Logout — coming in Step 3"
+    session.clear()
+    return redirect(url_for("landing"))
 
 
 @app.route("/profile")
