@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+
+{% block title %}Profile — Spendly{% endblock %}
+
+{% block head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/profile.css') }}">
+{% endblock %}
+
+{% block content %}
+<section class="profile-section">
+  <div class="profile-inner">
+
+    <!-- User info card -->
+    <article class="profile-card user-card" aria-label="Your profile">
+      <div class="avatar-circle" aria-label="Avatar initials">{{ user.initials }}</div>
+      <h2 class="profile-name">{{ user.name }}</h2>
+      <p class="profile-email">{{ user.email }}</p>
+      <p class="profile-meta">Member since {{ user.member_since }}</p>
+    </article>
+
+    <!-- Summary stats -->
+    <section class="stats-grid" aria-label="Summary statistics">
+      <article class="stat-card">
+        <span class="stat-label">Total spent</span>
+        <span class="stat-value">₹{{ "%.2f" | format(stats.total_spent) }}</span>
+      </article>
+      <article class="stat-card">
+        <span class="stat-label">Transactions</span>
+        <span class="stat-value">{{ stats.transaction_count }}</span>
+      </article>
+      <article class="stat-card">
+        <span class="stat-label">Top category</span>
+        <span class="stat-value">{{ stats.top_category }}</span>
+      </article>
+    </section>
+
+    <!-- Transaction history -->
+    <section class="profile-card transactions-card" aria-label="Transaction history">
+      <h3>Recent transactions</h3>
+      <table class="tx-table">
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Description</th>
+            <th>Category</th>
+            <th class="tx-amount">Amount</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for t in transactions %}
+          <tr>
+            <td>{{ t.date }}</td>
+            <td>{{ t.description }}</td>
+            <td><span class="badge badge-{{ t.category | lower }}">{{ t.category }}</span></td>
+            <td class="tx-amount">₹{{ "%.2f" | format(t.amount) }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </section>
+
+    <!-- Category breakdown -->
+    <section class="profile-card categories-card" aria-label="Category breakdown">
+      <h3>Category breakdown</h3>
+      <ul class="categories-list">
+        {% for c in categories %}
+        <li class="category-row">
+          <span class="category-label">{{ c.name }}</span>
+          <span class="category-total">₹{{ "%.2f" | format(c.total) }}</span>
+        </li>
+        {% endfor %}
+      </ul>
+    </section>
+
+  </div>
+</section>
+{% endblock %}
