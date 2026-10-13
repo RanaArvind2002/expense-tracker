@@ -39,6 +39,18 @@ def init_db():
     conn.close()
 
 
+def build_expense_conditions(user_id, start_date=None, end_date=None):
+    conditions = ["user_id = ?"]
+    params = [user_id]
+    if start_date:
+        conditions.append("date >= ?")
+        params.append(start_date)
+    if end_date:
+        conditions.append("date <= ?")
+        params.append(end_date)
+    return " AND ".join(conditions), tuple(params)
+
+
 def seed_db():
     conn = get_db()
     cursor = conn.execute("SELECT COUNT(*) FROM users")

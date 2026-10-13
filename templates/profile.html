@@ -34,6 +34,15 @@
       </article>
     </section>
 
+    <!-- Date filter -->
+    <form method="get" action="{{ url_for('profile') }}" class="date-filter-form">
+      <label for="start_date">From</label>
+      <input type="date" id="start_date" name="start_date" value="{{ start_date }}">
+      <label for="end_date">To</label>
+      <input type="date" id="end_date" name="end_date" value="{{ end_date }}">
+      <button type="submit" class="btn-primary">Filter</button>
+    </form>
+
     <!-- Transaction history -->
     <section class="profile-card transactions-card" aria-label="Transaction history">
       <h3>Recent transactions</h3>

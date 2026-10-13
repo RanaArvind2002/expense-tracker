@@ -2,7 +2,7 @@ import re
 from flask import Flask, render_template, request, redirect, url_for, session
 import sqlite3
 from werkzeug.security import generate_password_hash, check_password_hash
-from database.db import get_db, init_db, seed_db
+from database.db import get_db, init_db, seed_db, build_expense_conditions
 
 app = Flask(__name__)
 app.secret_key = "spendly-secret-key-2026"
@@ -121,6 +121,9 @@ def profile():
     if not session.get("user_id"):
         return redirect(url_for("login"))
     user_id = session.get("user_id")
+    start_date = request.args.get("start_date", "").strip() or None
+    end_date = request.args.get("end_date", "").strip() or None
+    where_clause, params = build_expense_conditions(user_id, start_date, end_date)
     conn = get_db()
     try:
         user_row = conn.execute("SELECT name, email, created_at FROM users WHERE id = ?", (user_id,)).fetchone()
@@ -132,19 +135,40 @@ def profile():
         "initials": (user_row["name"][0] if user_row and user_row["name"] else "U").upper(),
         "member_since": user_row["created_at"] if user_row else "",
     }
+
     conn = get_db()
     try:
-        total_row = conn.execute("SELECT SUM(amount) FROM expenses WHERE user_id = ?", (user_id,)).fetchone()
+        base_stats = "SELECT SUM(amount) FROM expenses WHERE " + where_clause
+        total_row = conn.execute(base_stats, params).fetchone()
         total_spent = total_row[0] if total_row[0] is not None else 0.0
 
-        count_row = conn.execute("SELECT COUNT(*) FROM expenses WHERE user_id = ?", (user_id,)).fetchone()
+        base_count = "SELECT COUNT(*) FROM expenses WHERE " + where_clause
+        count_row = conn.execute(base_count, params).fetchone()
         transaction_count = count_row[0] if count_row[0] is not None else 0
 
-        top_row = conn.execute(
-            "SELECT category FROM expenses WHERE user_id = ? GROUP BY category ORDER BY SUM(amount) DESC LIMIT 1",
-            (user_id,)
-        ).fetchone()
+        base_top = "SELECT category FROM expenses WHERE " + where_clause + " GROUP BY category ORDER BY SUM(amount) DESC LIMIT 1"
+        top_row = conn.execute(base_top, params).fetchone()
         top_category = top_row["category"] if top_row else None
+
+        base_transactions = "SELECT date, description, category, amount FROM expenses WHERE " + where_clause + " ORDER BY date DESC LIMIT 10"
+        rows = conn.execute(base_transactions, params).fetchall()
+        transactions = []
+        for row in rows:
+            transactions.append({
+                "date": row["date"],
+                "description": row["description"],
+                "category": row["category"],
+                "amount": row["amount"],
+            })
+
+        base_categories = "SELECT category, SUM(amount) AS total FROM expenses WHERE " + where_clause + " GROUP BY category"
+        cat_rows = conn.execute(base_categories, params).fetchall()
+        categories = []
+        for row in cat_rows:
+            categories.append({
+                "name": row["category"],
+                "total": float(row["total"]) if row["total"] is not None else 0.0,
+            })
     finally:
         conn.close()
 
@@ -153,42 +177,14 @@ def profile():
         "transaction_count": transaction_count,
         "top_category": top_category,
     }
-    transactions = []
-    conn = get_db()
-    try:
-        rows = conn.execute(
-            "SELECT date, description, category, amount FROM expenses WHERE user_id = ? ORDER BY date DESC LIMIT 10",
-            (session.get("user_id"),)
-        ).fetchall()
-        for row in rows:
-            transactions.append({
-                "date": row["date"],
-                "description": row["description"],
-                "category": row["category"],
-                "amount": row["amount"],
-            })
-    finally:
-        conn.close()
-    categories = []
-    conn = get_db()
-    try:
-        rows = conn.execute(
-            "SELECT category, SUM(amount) AS total FROM expenses WHERE user_id = ? GROUP BY category",
-            (user_id,),
-        ).fetchall()
-        for row in rows:
-            categories.append({
-                "name": row["category"],
-                "total": float(row["total"]) if row["total"] is not None else 0.0,
-            })
-    finally:
-        conn.close()
     return render_template(
         "profile.html",
         user=user,
         stats=stats,
         transactions=transactions,
         categories=categories,
+        start_date=start_date or "",
+        end_date=end_date or "",
     )
 
 
