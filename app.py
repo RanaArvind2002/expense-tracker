@@ -120,30 +120,69 @@ def logout():
 def profile():
     if not session.get("user_id"):
         return redirect(url_for("login"))
+    user_id = session.get("user_id")
+    conn = get_db()
+    try:
+        user_row = conn.execute("SELECT name, email, created_at FROM users WHERE id = ?", (user_id,)).fetchone()
+    finally:
+        conn.close()
     user = {
-        "name": "Arvind Rana",
-        "email": "arvind@example.com",
-        "initials": "AR",
-        "member_since": "October 2024",
+        "name": user_row["name"] if user_row else "Unknown",
+        "email": user_row["email"] if user_row else "",
+        "initials": (user_row["name"][0] if user_row and user_row["name"] else "U").upper(),
+        "member_since": user_row["created_at"] if user_row else "",
     }
+    conn = get_db()
+    try:
+        total_row = conn.execute("SELECT SUM(amount) FROM expenses WHERE user_id = ?", (user_id,)).fetchone()
+        total_spent = total_row[0] if total_row[0] is not None else 0.0
+
+        count_row = conn.execute("SELECT COUNT(*) FROM expenses WHERE user_id = ?", (user_id,)).fetchone()
+        transaction_count = count_row[0] if count_row[0] is not None else 0
+
+        top_row = conn.execute(
+            "SELECT category FROM expenses WHERE user_id = ? GROUP BY category ORDER BY SUM(amount) DESC LIMIT 1",
+            (user_id,)
+        ).fetchone()
+        top_category = top_row["category"] if top_row else None
+    finally:
+        conn.close()
+
     stats = {
-        "total_spent": 1247.85,
-        "transaction_count": 42,
-        "top_category": "Food",
+        "total_spent": total_spent,
+        "transaction_count": transaction_count,
+        "top_category": top_category,
     }
-    transactions = [
-        {"date": "2026-10-08", "description": "Grocery run", "category": "Food", "amount": 45.50},
-        {"date": "2026-10-07", "description": "Bus pass", "category": "Transport", "amount": 12.00},
-        {"date": "2026-10-05", "description": "Electricity", "category": "Bills", "amount": 120.00},
-        {"date": "2026-10-03", "description": "Lunch out", "category": "Food", "amount": 22.30},
-    ]
-    categories = [
-        {"name": "Food", "total": 312.40},
-        {"name": "Transport", "total": 156.20},
-        {"name": "Bills", "total": 410.00},
-        {"name": "Health", "total": 98.75},
-        {"name": "Entertainment", "total": 150.50},
-    ]
+    transactions = []
+    conn = get_db()
+    try:
+        rows = conn.execute(
+            "SELECT date, description, category, amount FROM expenses WHERE user_id = ? ORDER BY date DESC LIMIT 10",
+            (session.get("user_id"),)
+        ).fetchall()
+        for row in rows:
+            transactions.append({
+                "date": row["date"],
+                "description": row["description"],
+                "category": row["category"],
+                "amount": row["amount"],
+            })
+    finally:
+        conn.close()
+    categories = []
+    conn = get_db()
+    try:
+        rows = conn.execute(
+            "SELECT category, SUM(amount) AS total FROM expenses WHERE user_id = ? GROUP BY category",
+            (user_id,),
+        ).fetchall()
+        for row in rows:
+            categories.append({
+                "name": row["category"],
+                "total": float(row["total"]) if row["total"] is not None else 0.0,
+            })
+    finally:
+        conn.close()
     return render_template(
         "profile.html",
         user=user,
