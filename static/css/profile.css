@@ -198,6 +198,58 @@
   letter-spacing: -0.01em;
 }
 
+.date-filter-form {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+  background: var(--paper-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.date-filter-form label {
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--ink-soft);
+}
+
+.date-filter-form input[type="date"] {
+  padding: 0.4rem 0.6rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  color: var(--ink);
+  background: var(--paper);
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.date-filter-form input[type="date"]:focus {
+  border-color: var(--accent);
+}
+
+.date-filter-form button {
+  padding: 0.4rem 1rem;
+  background: var(--accent);
+  color: var(--paper-card);
+  border: none;
+  border-radius: var(--radius-sm);
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.date-filter-form button:hover {
+  background: var(--ink);
+}
+
 /* Responsive */
 @media (max-width: 600px) {
   .profile-section { padding: 2rem 1rem; }
