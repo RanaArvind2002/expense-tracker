@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+
+{% block title %}Analytics — Coming Soon — Spendly{% endblock %}
+
+{% block head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+<style>
+.analytics-page {
+    min-height: calc(100vh - 60px - 100px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #f2f1f0;
+    padding: 3rem 2rem;
+}
+
+.analytics-card {
+    background: #fdfcfb;
+    border-radius: 28px;
+    box-shadow: 0 24px 60px rgba(0,0,0,0.06), 0 4px 24px rgba(0,0,0,0.04);
+    max-width: 560px;
+    width: 100%;
+    padding: 3.5rem 3rem 4rem;
+    text-align: center;
+}
+
+.analytics-icon-wrap {
+    width: 96px;
+    height: 96px;
+    background: #1a3a2a;
+    border-radius: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 2rem;
+}
+
+.analytics-icon-wrap svg {
+    width: 42px;
+    height: 42px;
+    stroke: #fff;
+    stroke-width: 2;
+    fill: none;
+}
+
+.analytics-badge {
+    display: inline-block;
+    background: #1a3a2a;
+    color: #fff;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 0.45rem 1.25rem;
+    border-radius: 999px;
+    margin-bottom: 2rem;
+}
+
+.analytics-title {
+    font-family: var(--font-display);
+    font-size: clamp(2.2rem, 5vw, 3rem);
+    line-height: 1.05;
+    color: #0f0f0f;
+    margin-bottom: 1rem;
+    letter-spacing: -0.02em;
+}
+
+.analytics-sub {
+    font-size: 1rem;
+    color: #6b6b6b;
+    line-height: 1.65;
+    max-width: 420px;
+    margin: 0 auto 2.25rem;
+}
+
+.analytics-dots {
+    display: flex;
+    justify-content: center;
+    gap: 0.6rem;
+    margin-bottom: 1.5rem;
+}
+
+.analytics-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #1a3a2a;
+    opacity: 0.9;
+}
+
+.analytics-foot {
+    font-size: 0.85rem;
+    color: #a0a0a0;
+    letter-spacing: 0.02em;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="analytics-page">
+    <div class="analytics-card">
+        <div class="analytics-icon-wrap" aria-label="Clock icon">
+            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="12" cy="12" r="10"/>
+                <polyline points="12 6 12 12 16 14"/>
+            </svg>
+        </div>
+        <div class="analytics-badge">Coming Soon</div>
+        <h1 class="analytics-title">Advanced Analytics</h1>
+        <p class="analytics-sub">We're working on powerful insights and visualizations<br>to help you understand your spending patterns better.</p>
+        <div class="analytics-dots">
+            <span class="analytics-dot"></span>
+            <span class="analytics-dot"></span>
+            <span class="analytics-dot"></span>
+        </div>
+        <p class="analytics-foot">We're crafting something special</p>
+    </div>
+</section>
+{% endblock %}
