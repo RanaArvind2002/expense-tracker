@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+
+{% block title %}Add Expense — Spendly{% endblock %}
+
+{% block head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/add-expense.css') }}">
+{% endblock %}
+
+{% block content %}
+<section class="add-expense-section" aria-label="Add new expense">
+  <div class="add-expense-card">
+    <h1 class="add-expense-title">Add Expense</h1>
+    <p class="add-expense-subtitle">Record a new spending entry for tracking.</p>
+
+    {% if error %}
+    <div class="add-expense-error" role="alert" aria-live="polite">{{ error }}</div>
+    {% endif %}
+
+    <form class="add-expense-form" method="POST" action="{{ url_for('add_expense') }}" novalidate>
+      <div class="form-group">
+        <label for="amount">Amount (₹)</label>
+        <input
+          class="form-input"
+          type="number"
+          id="amount"
+          name="amount"
+          step="0.01"
+          min="0.01"
+          value="{{ amount }}"
+          placeholder="0.00"
+          required
+          autofocus
+        >
+      </div>
+
+      <div class="form-group">
+        <label for="category">Category</label>
+        <select class="form-input" id="category" name="category" required>
+          <option value="" disabled {% if not category %}selected{% endif %}>Select category</option>
+          {% for c in categories %}
+          <option value="{{ c }}" {% if category == c %}selected{% endif %}>{{ c }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="date">Date</label>
+        <input class="form-input" type="date" id="date" name="date" value="{{ date }}" required>
+      </div>
+
+      <div class="form-group">
+        <label for="description">Description</label>
+        <input class="form-input" type="text" id="description" name="description" value="{{ description }}" maxlength="200" placeholder="What was this for?">
+      </div>
+
+      <button type="submit" class="btn-submit">Save Expense</button>
+      <a href="{{ url_for('profile') }}" class="add-expense-cancel">Cancel</a>
+    </form>
+  </div>
+</section>
+{% endblock %}

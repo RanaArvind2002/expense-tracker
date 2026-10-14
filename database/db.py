@@ -51,6 +51,16 @@ def build_expense_conditions(user_id, start_date=None, end_date=None):
     return " AND ".join(conditions), tuple(params)
 
 
+def insert_expense(user_id, amount, category, date, description):
+    conn = get_db()
+    conn.execute(
+        "INSERT INTO expenses (user_id, amount, category, date, description) VALUES (?, ?, ?, ?, ?)",
+        (user_id, float(amount), category, date, description if description else None),
+    )
+    conn.commit()
+    conn.close()
+
+
 def seed_db():
     conn = get_db()
     cursor = conn.execute("SELECT COUNT(*) FROM users")
